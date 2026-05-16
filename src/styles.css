@@ -404,7 +404,7 @@ button {
   display: flex;
   align-items: center;
   gap: 12px;
-  color: #dcdde0;
+  color: var(--text);
 }
 
 .check-swatch {
