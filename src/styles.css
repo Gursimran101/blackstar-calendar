@@ -254,6 +254,10 @@ button {
   min-height: 0;
 }
 
+.workspace.sidebar-collapsed {
+  grid-template-columns: minmax(0, 1fr);
+}
+
 .sidebar {
   padding: 16px 16px 28px;
   background: rgba(26, 27, 28, 0.96);

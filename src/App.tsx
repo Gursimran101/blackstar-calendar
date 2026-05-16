@@ -156,6 +156,7 @@ export function App() {
   const [view, setView] = useState<CalendarView>(() => getStoredView());
   const [focusDate, setFocusDate] = useState(() => new Date());
   const [modalSeed, setModalSeed] = useState<EventSeed | null>(null);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
 
   useEffect(() => {
     saveCalendar(events);
@@ -199,17 +200,21 @@ export function App() {
         onPrevious={() => setFocusDate((date) => moveFocus(date, view, -1))}
         onNext={() => setFocusDate((date) => moveFocus(date, view, 1))}
         onViewChange={setView}
+        onMenuToggle={() => setSidebarOpen((open) => !open)}
+        sidebarOpen={sidebarOpen}
       />
-      <div className="workspace">
-        <Sidebar
-          focusDate={focusDate}
-          events={events}
-          onCreate={() => openCreate()}
-          onDateSelect={(date) => {
-            setFocusDate(date);
-            setView("day");
-          }}
-        />
+      <div className={sidebarOpen ? "workspace" : "workspace sidebar-collapsed"}>
+        {sidebarOpen && (
+          <Sidebar
+            focusDate={focusDate}
+            events={events}
+            onCreate={() => openCreate()}
+            onDateSelect={(date) => {
+              setFocusDate(date);
+              setView("day");
+            }}
+          />
+        )}
         <main className="calendar-surface">
           {view === "year" && (
             <YearView
@@ -274,6 +279,8 @@ function Header({
   onPrevious,
   onNext,
   onViewChange,
+  onMenuToggle,
+  sidebarOpen,
 }: {
   view: CalendarView;
   focusDate: Date;
@@ -281,11 +288,19 @@ function Header({
   onPrevious: () => void;
   onNext: () => void;
   onViewChange: (view: CalendarView) => void;
+  onMenuToggle: () => void;
+  sidebarOpen: boolean;
 }) {
   return (
     <header className="topbar">
       <div className="brand-block">
-        <button className="icon-button" aria-label="Menu">
+        <button
+          className="icon-button"
+          type="button"
+          aria-label={sidebarOpen ? "Collapse sidebar" : "Expand sidebar"}
+          aria-expanded={sidebarOpen}
+          onClick={onMenuToggle}
+        >
           <Menu size={24} />
         </button>
         <div className="blackstar-lockup" aria-label="Blackstar Calendar">
@@ -324,10 +339,10 @@ function Header({
             onChange={(event) => onViewChange(event.target.value as CalendarView)}
             aria-label="Calendar view"
           >
-            <option value="year">Year</option>
-            <option value="month">Month</option>
-            <option value="week">Week</option>
             <option value="day">Day</option>
+            <option value="week">Week</option>
+            <option value="month">Month</option>
+            <option value="year">Year</option>
           </select>
           <ChevronDown size={16} />
         </label>
