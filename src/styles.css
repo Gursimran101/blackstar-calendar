@@ -731,8 +731,6 @@ button {
 
 .time-event {
   position: absolute;
-  left: 8px;
-  right: 8px;
   min-height: 32px;
   display: flex;
   flex-direction: column;

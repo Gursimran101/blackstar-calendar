@@ -21,7 +21,6 @@ import {
   ChevronDown,
   ChevronLeft,
   ChevronRight,
-  CircleHelp,
   Clock3,
   Grip,
   MapPin,
@@ -44,6 +43,7 @@ import {
   eventsForDay,
   formatDateInput,
   formatTimeInput,
+  layoutEvents,
   monthGridDays,
   parseLocalDateTime,
   visibleTitle,
@@ -157,7 +157,7 @@ const getStoredView = (): CalendarView => {
   const value = window.localStorage.getItem("blackstar-calendar:view");
   return value === "month" || value === "week" || value === "day" || value === "year"
     ? value
-    : "year";
+    : "week";
 };
 
 export function App() {
@@ -389,10 +389,7 @@ function Header({
         <button className="icon-button optional-tool" aria-label="Search">
           <Search size={21} />
         </button>
-        <button className="icon-button optional-tool" aria-label="Help">
-          <CircleHelp size={21} />
-        </button>
-        <button className="icon-button" type="button" onClick={onSettingsOpen} aria-label="Settings">
+<button className="icon-button" type="button" onClick={onSettingsOpen} aria-label="Settings">
           <Settings size={21} />
         </button>
         <label className="view-select">
@@ -781,6 +778,7 @@ function TimeGridView({
         </div>
         {days.map((day) => {
           const dayEvents = eventsForDay(events, day).filter((event) => !event.allDay);
+          const layouts = layoutEvents(dayEvents, day);
 
           return (
             <div className="day-column" key={day.toISOString()}>
@@ -793,7 +791,7 @@ function TimeGridView({
                   onClick={() => onCreate(setMinutes(setHours(day, hour), 0))}
                 />
               ))}
-              {dayEvents.map((event) => {
+              {layouts.map(({ event, column, totalColumns }) => {
                 const placement = clampEventMinutes(event, day);
                 const top = (placement.start / 60) * 56;
                 const height = (placement.duration / 60) * 56;
@@ -806,6 +804,8 @@ function TimeGridView({
                     style={{
                       top,
                       height,
+                      left: `calc(8px + ${column} * (100% - 16px) / ${totalColumns})`,
+                      width: `calc((100% - 16px) / ${totalColumns} - 2px)`,
                       borderColor: event.color,
                       background: `linear-gradient(90deg, ${event.color} 0 5px, var(--time-event-fill) 5px)`,
                     }}

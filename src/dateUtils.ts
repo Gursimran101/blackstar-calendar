@@ -3,13 +3,11 @@ import {
   addMinutes,
   differenceInMinutes,
   eachDayOfInterval,
-  endOfMonth,
   endOfWeek,
   format,
   isAfter,
   isBefore,
   isSameDay,
-  isSameMonth,
   parseISO,
   startOfDay,
   startOfMonth,
@@ -66,15 +64,7 @@ export const visibleTitle = (view: CalendarView, date: Date): string => {
     return format(date, "EEEE, MMMM d, yyyy");
   }
 
-  const days = weekDays(date);
-  const first = days[0];
-  const last = days[6];
-
-  if (isSameMonth(first, last)) {
-    return `${format(first, "MMM d")} - ${format(last, "d, yyyy")}`;
-  }
-
-  return `${format(first, "MMM d")} - ${format(last, "MMM d, yyyy")}`;
+  return format(date, "MMMM yyyy");
 };
 
 export const formatDateInput = (date: Date): string => format(date, "yyyy-MM-dd");
@@ -104,3 +94,60 @@ export const clampEventMinutes = (
 };
 
 export const defaultEventEnd = (start: Date): Date => addMinutes(start, 60);
+
+export type EventLayout = {
+  event: CalendarEvent;
+  column: number;
+  totalColumns: number;
+};
+
+export const layoutEvents = (events: CalendarEvent[], day: Date): EventLayout[] => {
+  if (events.length === 0) return [];
+
+  const items = events.map((event) => {
+    const p = clampEventMinutes(event, day);
+    return { event, start: p.start, end: p.start + p.duration };
+  });
+
+  items.sort((a, b) => a.start - b.start || b.end - b.start - (a.end - a.start));
+
+  const columns: number[] = [];
+  for (let i = 0; i < items.length; i++) {
+    const used = new Set<number>();
+    for (let j = 0; j < i; j++) {
+      if (items[j].end > items[i].start) {
+        used.add(columns[j]);
+      }
+    }
+    let col = 0;
+    while (used.has(col)) col++;
+    columns[i] = col;
+  }
+
+  const parent = items.map((_, i) => i);
+  const find = (x: number): number =>
+    parent[x] === x ? x : (parent[x] = find(parent[x]));
+  const union = (a: number, b: number) => {
+    parent[find(a)] = find(b);
+  };
+
+  for (let i = 0; i < items.length; i++) {
+    for (let j = i + 1; j < items.length; j++) {
+      if (items[i].end > items[j].start) {
+        union(i, j);
+      }
+    }
+  }
+
+  const groupMax = new Map<number, number>();
+  for (let i = 0; i < items.length; i++) {
+    const root = find(i);
+    groupMax.set(root, Math.max(groupMax.get(root) ?? 0, columns[i]));
+  }
+
+  return items.map((item, i) => ({
+    event: item.event,
+    column: columns[i],
+    totalColumns: (groupMax.get(find(i)) ?? 0) + 1,
+  }));
+};
