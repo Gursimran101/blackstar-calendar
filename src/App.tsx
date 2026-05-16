@@ -26,9 +26,12 @@ import {
   Grip,
   MapPin,
   Menu,
+  Moon,
   Plus,
+  RotateCcw,
   Search,
   Settings,
+  Sun,
   Trash2,
   Users,
   X,
@@ -46,8 +49,14 @@ import {
   visibleTitle,
   weekDays,
 } from "./dateUtils";
-import { loadCalendar, saveCalendar } from "./storage";
-import type { CalendarEvent, CalendarView, ReminderOffset } from "./types";
+import { loadCalendarState, loadTheme, saveCalendar, saveTheme } from "./storage";
+import type {
+  CalendarEvent,
+  CalendarView,
+  DeletedCalendarEvent,
+  ReminderOffset,
+  ThemePreference,
+} from "./types";
 
 const EVENT_COLORS = ["#73d39b", "#f4c95d", "#8fb5ff", "#ff8a80", "#c9a7ff"];
 
@@ -152,15 +161,24 @@ const getStoredView = (): CalendarView => {
 };
 
 export function App() {
-  const [events, setEvents] = useState<CalendarEvent[]>(() => loadCalendar());
+  const [initialCalendarState] = useState(() => loadCalendarState());
+  const [events, setEvents] = useState<CalendarEvent[]>(initialCalendarState.events);
+  const [trash, setTrash] = useState<DeletedCalendarEvent[]>(initialCalendarState.trash);
   const [view, setView] = useState<CalendarView>(() => getStoredView());
   const [focusDate, setFocusDate] = useState(() => new Date());
   const [modalSeed, setModalSeed] = useState<EventSeed | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [theme, setTheme] = useState<ThemePreference>(() => loadTheme());
 
   useEffect(() => {
-    saveCalendar(events);
-  }, [events]);
+    saveCalendar(events, trash);
+  }, [events, trash]);
+
+  useEffect(() => {
+    document.documentElement.dataset.theme = theme;
+    saveTheme(theme);
+  }, [theme]);
 
   useEffect(() => {
     window.localStorage.setItem("blackstar-calendar:view", view);
@@ -188,7 +206,35 @@ export function App() {
   };
 
   const deleteEvent = (eventId: string) => {
+    const event = events.find((candidate) => candidate.id === eventId);
+
+    if (!event) {
+      return;
+    }
+
     setEvents((current) => current.filter((event) => event.id !== eventId));
+    setTrash((current) => [
+      { ...event, deletedAt: new Date().toISOString() },
+      ...current.filter((candidate) => candidate.id !== eventId),
+    ]);
+  };
+
+  const restoreEvent = (eventId: string) => {
+    const deletedEvent = trash.find((candidate) => candidate.id === eventId);
+
+    if (!deletedEvent) {
+      return;
+    }
+
+    const { deletedAt: _deletedAt, ...event } = deletedEvent;
+    const restoredEvent = { ...event, updatedAt: new Date().toISOString() };
+
+    setTrash((current) => current.filter((candidate) => candidate.id !== eventId));
+    setEvents((current) =>
+      [...current.filter((candidate) => candidate.id !== eventId), restoredEvent].sort(
+        (a, b) => parseISO(a.start).getTime() - parseISO(b.start).getTime(),
+      ),
+    );
   };
 
   return (
@@ -202,6 +248,7 @@ export function App() {
         onViewChange={setView}
         onMenuToggle={() => setSidebarOpen((open) => !open)}
         sidebarOpen={sidebarOpen}
+        onSettingsOpen={() => setSettingsOpen(true)}
       />
       <div className={sidebarOpen ? "workspace" : "workspace sidebar-collapsed"}>
         {sidebarOpen && (
@@ -268,6 +315,19 @@ export function App() {
           }}
         />
       )}
+      {settingsOpen && (
+        <SettingsDialog
+          theme={theme}
+          trash={trash}
+          onClose={() => setSettingsOpen(false)}
+          onThemeChange={setTheme}
+          onRestore={restoreEvent}
+          onDeleteForever={(eventId) =>
+            setTrash((current) => current.filter((event) => event.id !== eventId))
+          }
+          onEmptyTrash={() => setTrash([])}
+        />
+      )}
     </div>
   );
 }
@@ -281,6 +341,7 @@ function Header({
   onViewChange,
   onMenuToggle,
   sidebarOpen,
+  onSettingsOpen,
 }: {
   view: CalendarView;
   focusDate: Date;
@@ -290,6 +351,7 @@ function Header({
   onViewChange: (view: CalendarView) => void;
   onMenuToggle: () => void;
   sidebarOpen: boolean;
+  onSettingsOpen: () => void;
 }) {
   return (
     <header className="topbar">
@@ -330,7 +392,7 @@ function Header({
         <button className="icon-button optional-tool" aria-label="Help">
           <CircleHelp size={21} />
         </button>
-        <button className="icon-button optional-tool" aria-label="Settings">
+        <button className="icon-button" type="button" onClick={onSettingsOpen} aria-label="Settings">
           <Settings size={21} />
         </button>
         <label className="view-select">
@@ -745,7 +807,7 @@ function TimeGridView({
                       top,
                       height,
                       borderColor: event.color,
-                      background: `linear-gradient(90deg, ${event.color} 0 5px, rgba(255,255,255,0.08) 5px)`,
+                      background: `linear-gradient(90deg, ${event.color} 0 5px, var(--time-event-fill) 5px)`,
                     }}
                     onClick={() => onEdit(event)}
                   >
@@ -762,6 +824,129 @@ function TimeGridView({
         })}
       </div>
     </section>
+  );
+}
+
+function SettingsDialog({
+  theme,
+  trash,
+  onClose,
+  onThemeChange,
+  onRestore,
+  onDeleteForever,
+  onEmptyTrash,
+}: {
+  theme: ThemePreference;
+  trash: DeletedCalendarEvent[];
+  onClose: () => void;
+  onThemeChange: (theme: ThemePreference) => void;
+  onRestore: (eventId: string) => void;
+  onDeleteForever: (eventId: string) => void;
+  onEmptyTrash: () => void;
+}) {
+  const sortedTrash = [...trash].sort(
+    (a, b) => parseISO(b.deletedAt).getTime() - parseISO(a.deletedAt).getTime(),
+  );
+
+  return (
+    <div className="dialog-backdrop" role="presentation" onMouseDown={onClose}>
+      <section
+        className="event-dialog settings-dialog"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="settings-dialog-title"
+        onMouseDown={(event) => event.stopPropagation()}
+      >
+        <div className="dialog-header">
+          <h2 id="settings-dialog-title">Settings</h2>
+          <button className="icon-button" type="button" onClick={onClose} aria-label="Close">
+            <X size={20} />
+          </button>
+        </div>
+
+        <section className="settings-section">
+          <div className="settings-section-heading">
+            <div>
+              <h3>Appearance</h3>
+              <p>Choose how Blackstar Calendar looks on this device.</p>
+            </div>
+          </div>
+          <div className="appearance-options" role="group" aria-label="Appearance">
+            <button
+              className={theme === "dark" ? "appearance-option active" : "appearance-option"}
+              type="button"
+              onClick={() => onThemeChange("dark")}
+            >
+              <Moon size={19} />
+              <span>Dark mode</span>
+            </button>
+            <button
+              className={theme === "light" ? "appearance-option active" : "appearance-option"}
+              type="button"
+              onClick={() => onThemeChange("light")}
+            >
+              <Sun size={19} />
+              <span>Light mode</span>
+            </button>
+          </div>
+        </section>
+
+        <section className="settings-section">
+          <div className="settings-section-heading">
+            <div>
+              <h3>Trash</h3>
+              <p>Deleted meetings stay here until you restore them or delete them forever.</p>
+            </div>
+            {sortedTrash.length > 0 && (
+              <button className="text-danger-button" type="button" onClick={onEmptyTrash}>
+                Empty trash
+              </button>
+            )}
+          </div>
+
+          <div className="trash-list">
+            {sortedTrash.length === 0 && (
+              <div className="empty-trash">
+                <Trash2 size={22} />
+                <span>Trash is empty</span>
+              </div>
+            )}
+            {sortedTrash.map((event) => (
+              <article className="trash-item" key={event.id}>
+                <div className="trash-item-main">
+                  <span className="event-dot" style={{ backgroundColor: event.color }} />
+                  <div>
+                    <h4>{event.title}</h4>
+                    <p>
+                      {format(parseISO(event.start), "MMM d, yyyy")}
+                      {!event.allDay &&
+                        `, ${format(parseISO(event.start), "h:mm a")} - ${format(
+                          parseISO(event.end),
+                          "h:mm a",
+                        )}`}
+                    </p>
+                    <p>Deleted {format(parseISO(event.deletedAt), "MMM d, h:mm a")}</p>
+                  </div>
+                </div>
+                <div className="trash-actions">
+                  <button className="restore-button" type="button" onClick={() => onRestore(event.id)}>
+                    <RotateCcw size={16} />
+                    Restore
+                  </button>
+                  <button
+                    className="text-danger-button"
+                    type="button"
+                    onClick={() => onDeleteForever(event.id)}
+                  >
+                    Delete forever
+                  </button>
+                </div>
+              </article>
+            ))}
+          </div>
+        </section>
+      </section>
+    </div>
   );
 }
 

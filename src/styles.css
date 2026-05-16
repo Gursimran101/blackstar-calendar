@@ -13,10 +13,61 @@
   --accent-2: #73d39b;
   --danger: #ff8a80;
   --shadow: 0 20px 55px rgba(0, 0, 0, 0.45);
+  --body-glow: rgba(115, 211, 155, 0.09);
+  --topbar-bg: rgba(20, 20, 21, 0.92);
+  --surface: #111112;
+  --sidebar-bg: rgba(26, 27, 28, 0.96);
+  --control-bg: rgba(255, 255, 255, 0.02);
+  --control-hover-bg: rgba(255, 255, 255, 0.08);
+  --control-hover-border: rgba(255, 255, 255, 0.42);
+  --create-bg: #3b3e42;
+  --create-hover-bg: #484b50;
+  --field-bg: #151617;
+  --dialog-bg: #1f2022;
+  --event-bg: rgba(255, 255, 255, 0.06);
+  --cell-outside-bg: rgba(0, 0, 0, 0.14);
+  --time-event-fill: rgba(255, 255, 255, 0.08);
+  --primary-action-bg: #f5f5f2;
+  --primary-action-text: #0d0d0e;
+  --star-color: #f6f6f2;
   font-family:
     Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   background: var(--bg);
   color: var(--text);
+}
+
+html[data-theme="light"] {
+  color-scheme: light;
+  --bg: #f8f8f5;
+  --panel: #ffffff;
+  --panel-2: #f1f2ef;
+  --panel-3: #e8ebe7;
+  --line: #dedfdb;
+  --line-strong: #c2c6bf;
+  --text: #171814;
+  --muted: #5d635d;
+  --subtle: #8a9089;
+  --accent: #096c9b;
+  --accent-2: #127a42;
+  --danger: #b3261e;
+  --shadow: 0 18px 46px rgba(31, 35, 29, 0.16);
+  --body-glow: rgba(18, 122, 66, 0.11);
+  --topbar-bg: rgba(250, 250, 247, 0.92);
+  --surface: #f5f6f3;
+  --sidebar-bg: rgba(244, 245, 241, 0.96);
+  --control-bg: rgba(0, 0, 0, 0.03);
+  --control-hover-bg: rgba(0, 0, 0, 0.06);
+  --control-hover-border: rgba(0, 0, 0, 0.28);
+  --create-bg: #ffffff;
+  --create-hover-bg: #eef0ec;
+  --field-bg: #ffffff;
+  --dialog-bg: #ffffff;
+  --event-bg: rgba(0, 0, 0, 0.04);
+  --cell-outside-bg: rgba(0, 0, 0, 0.035);
+  --time-event-fill: rgba(0, 0, 0, 0.05);
+  --primary-action-bg: #171814;
+  --primary-action-text: #ffffff;
+  --star-color: #171814;
 }
 
 * {
@@ -32,7 +83,7 @@ body,
 
 body {
   background:
-    radial-gradient(circle at top right, rgba(115, 211, 155, 0.09), transparent 28rem),
+    radial-gradient(circle at top right, var(--body-glow), transparent 28rem),
     var(--bg);
 }
 
@@ -61,7 +112,7 @@ button {
   gap: 24px;
   padding: 0 24px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.04);
-  background: rgba(20, 20, 21, 0.92);
+  background: var(--topbar-bg);
   backdrop-filter: blur(18px);
   position: sticky;
   top: 0;
@@ -94,21 +145,21 @@ button {
   background: conic-gradient(
     from 0deg,
     transparent 0deg 18deg,
-    #f6f6f2 18deg 28deg,
+    var(--star-color) 18deg 28deg,
     transparent 28deg 63deg,
-    #f6f6f2 63deg 73deg,
+    var(--star-color) 63deg 73deg,
     transparent 73deg 108deg,
-    #f6f6f2 108deg 118deg,
+    var(--star-color) 108deg 118deg,
     transparent 118deg 153deg,
-    #f6f6f2 153deg 163deg,
+    var(--star-color) 153deg 163deg,
     transparent 163deg 198deg,
-    #f6f6f2 198deg 208deg,
+    var(--star-color) 198deg 208deg,
     transparent 208deg 243deg,
-    #f6f6f2 243deg 253deg,
+    var(--star-color) 243deg 253deg,
     transparent 253deg 288deg,
-    #f6f6f2 288deg 298deg,
+    var(--star-color) 288deg 298deg,
     transparent 298deg 333deg,
-    #f6f6f2 333deg 343deg,
+    var(--star-color) 333deg 343deg,
     transparent 343deg 360deg
   );
   clip-path: polygon(50% 0, 57% 41%, 100% 50%, 57% 59%, 50% 100%, 43% 59%, 0 50%, 43% 41%);
@@ -162,7 +213,7 @@ button {
 
 .icon-button:hover,
 .mini-nav:hover {
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--control-hover-bg);
   color: var(--text);
 }
 
@@ -181,14 +232,14 @@ button {
 
 .outline-button:hover,
 .ghost-button:hover {
-  border-color: rgba(255, 255, 255, 0.42);
-  background: rgba(255, 255, 255, 0.06);
+  border-color: var(--control-hover-border);
+  background: var(--control-hover-bg);
 }
 
 .save-button {
-  background: var(--text);
-  color: #0d0d0e;
-  border-color: var(--text);
+  background: var(--primary-action-bg);
+  color: var(--primary-action-text);
+  border-color: var(--primary-action-bg);
   font-weight: 700;
 }
 
@@ -210,7 +261,7 @@ button {
   align-items: center;
   padding: 0 14px 0 20px;
   gap: 8px;
-  background: rgba(255, 255, 255, 0.02);
+  background: var(--control-bg);
 }
 
 .view-select select {
@@ -260,7 +311,7 @@ button {
 
 .sidebar {
   padding: 16px 16px 28px;
-  background: rgba(26, 27, 28, 0.96);
+  background: var(--sidebar-bg);
   border-right: 1px solid rgba(255, 255, 255, 0.04);
   overflow-y: auto;
 }
@@ -270,7 +321,7 @@ button {
   min-width: 174px;
   border: 0;
   border-radius: 20px;
-  background: #3b3e42;
+  background: var(--create-bg);
   box-shadow: var(--shadow);
   color: var(--text);
   display: inline-flex;
@@ -283,7 +334,7 @@ button {
 }
 
 .create-button:hover {
-  background: #484b50;
+  background: var(--create-hover-bg);
 }
 
 .mini-calendar {
@@ -386,7 +437,7 @@ button {
 .calendar-surface {
   min-width: 0;
   overflow: auto;
-  background: #111112;
+  background: var(--surface);
 }
 
 .year-view {
@@ -402,7 +453,7 @@ button {
   margin: 0 0 16px;
   font-size: 20px;
   line-height: 1.1;
-  color: #d8d8db;
+  color: var(--text);
   font-weight: 650;
 }
 
@@ -434,7 +485,7 @@ button {
   border: 0;
   border-radius: 50%;
   background: transparent;
-  color: #dfe0e2;
+  color: var(--text);
   cursor: pointer;
   font-size: 14px;
 }
@@ -444,7 +495,7 @@ button {
 }
 
 .mini-day.outside {
-  color: #8f939a;
+  color: var(--subtle);
 }
 
 .mini-day.today {
@@ -507,7 +558,7 @@ button {
 
 .month-cell.outside {
   color: var(--subtle);
-  background: rgba(0, 0, 0, 0.14);
+  background: var(--cell-outside-bg);
 }
 
 .month-cell.today .month-date {
@@ -539,7 +590,7 @@ button {
   gap: 7px;
   border: 1px solid;
   border-radius: 8px;
-  background: rgba(255, 255, 255, 0.06);
+  background: var(--event-bg);
   color: var(--text);
   padding: 0 8px;
   overflow: hidden;
@@ -582,7 +633,7 @@ button {
   position: sticky;
   top: 0;
   z-index: 3;
-  background: #111112;
+  background: var(--surface);
   border-bottom: 1px solid var(--line);
 }
 
@@ -707,7 +758,7 @@ button {
 
 .time-event span {
   font-size: 12px;
-  color: #d2d4d8;
+  color: var(--muted);
 }
 
 .dialog-backdrop {
@@ -727,7 +778,7 @@ button {
   overflow: auto;
   border: 1px solid var(--line-strong);
   border-radius: 18px;
-  background: #1f2022;
+  background: var(--dialog-bg);
   color: var(--text);
   box-shadow: var(--shadow);
   padding: 22px;
@@ -770,7 +821,7 @@ button {
   width: 100%;
   border: 1px solid var(--line-strong);
   border-radius: 10px;
-  background: #151617;
+  background: var(--field-bg);
   color: var(--text);
   outline: 0;
   padding: 12px 13px;
@@ -831,7 +882,7 @@ button {
 }
 
 .color-picker button.selected {
-  border-color: #fff;
+  border-color: var(--text);
   box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.16);
 }
 
@@ -843,6 +894,151 @@ button {
 .dialog-actions {
   justify-content: flex-end;
   gap: 10px;
+}
+
+.settings-dialog {
+  width: min(680px, 100%);
+}
+
+.settings-section {
+  border-top: 1px solid var(--line);
+  padding-top: 18px;
+  margin-top: 18px;
+}
+
+.settings-section:first-of-type {
+  border-top: 0;
+  padding-top: 0;
+  margin-top: 0;
+}
+
+.settings-section-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 14px;
+}
+
+.settings-section-heading h3,
+.trash-item h4 {
+  margin: 0;
+  color: var(--text);
+}
+
+.settings-section-heading h3 {
+  font-size: 17px;
+}
+
+.settings-section-heading p,
+.trash-item p {
+  margin: 5px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.appearance-options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.appearance-option {
+  min-height: 58px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border: 1px solid var(--line-strong);
+  border-radius: 12px;
+  background: var(--field-bg);
+  color: var(--text);
+  padding: 0 16px;
+  cursor: pointer;
+}
+
+.appearance-option:hover {
+  border-color: var(--control-hover-border);
+  background: var(--control-hover-bg);
+}
+
+.appearance-option.active {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(121, 209, 255, 0.16);
+}
+
+.trash-list {
+  display: grid;
+  gap: 10px;
+}
+
+.empty-trash {
+  min-height: 88px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  border: 1px dashed var(--line-strong);
+  border-radius: 12px;
+  color: var(--muted);
+}
+
+.trash-item {
+  display: grid;
+  gap: 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--field-bg);
+  padding: 14px;
+}
+
+.trash-item-main {
+  display: grid;
+  grid-template-columns: 12px minmax(0, 1fr);
+  gap: 12px;
+}
+
+.trash-item-main .event-dot {
+  margin-top: 5px;
+}
+
+.trash-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.restore-button,
+.text-danger-button {
+  min-height: 36px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  cursor: pointer;
+}
+
+.restore-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--text);
+  padding: 0 14px;
+  border: 1px solid var(--line-strong);
+}
+
+.restore-button:hover {
+  background: var(--control-hover-bg);
+}
+
+.text-danger-button {
+  color: var(--danger);
+  padding: 0 8px;
+}
+
+.text-danger-button:hover {
+  background: rgba(255, 138, 128, 0.12);
 }
 
 @media (max-width: 1180px) {

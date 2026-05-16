@@ -16,9 +16,21 @@ export type CalendarEvent = {
   updatedAt: string;
 };
 
+export type DeletedCalendarEvent = CalendarEvent & {
+  deletedAt: string;
+};
+
 export type CalendarStorageV1 = {
   version: 1;
   events: CalendarEvent[];
+  trash?: DeletedCalendarEvent[];
 };
+
+export type CalendarState = {
+  events: CalendarEvent[];
+  trash: DeletedCalendarEvent[];
+};
+
+export type ThemePreference = "light" | "dark";
 
 export type DraftEvent = Omit<CalendarEvent, "id" | "createdAt" | "updatedAt">;

@@ -1,7 +1,14 @@
 import { addDays, addHours, setHours, setMinutes } from "date-fns";
-import type { CalendarEvent, CalendarStorageV1 } from "./types";
+import type {
+  CalendarEvent,
+  CalendarState,
+  CalendarStorageV1,
+  DeletedCalendarEvent,
+  ThemePreference,
+} from "./types";
 
 export const STORAGE_KEY = "blackstar-calendar:v1";
+export const THEME_KEY = "blackstar-calendar:theme";
 
 const EVENT_COLORS = ["#73d39b", "#f4c95d", "#8fb5ff"];
 
@@ -25,6 +32,9 @@ const isCalendarEvent = (value: unknown): value is CalendarEvent => {
     typeof value.updatedAt === "string"
   );
 };
+
+const isDeletedCalendarEvent = (value: unknown): value is DeletedCalendarEvent =>
+  isRecord(value) && typeof value["deletedAt"] === "string" && isCalendarEvent(value);
 
 const seedEvents = (): CalendarEvent[] => {
   const now = new Date();
@@ -62,31 +72,37 @@ const seedEvents = (): CalendarEvent[] => {
   ];
 };
 
-export const loadCalendar = (): CalendarEvent[] => {
+export const loadCalendarState = (): CalendarState => {
   if (typeof window === "undefined") {
-    return [];
+    return { events: [], trash: [] };
   }
 
   const raw = window.localStorage.getItem(STORAGE_KEY);
 
   if (!raw) {
-    return seedEvents();
+    return { events: seedEvents(), trash: [] };
   }
 
   try {
     const parsed = JSON.parse(raw) as CalendarStorageV1;
 
     if (parsed.version !== 1 || !Array.isArray(parsed.events)) {
-      return [];
+      return { events: [], trash: [] };
     }
 
-    return parsed.events.filter(isCalendarEvent);
+    return {
+      events: parsed.events.filter(isCalendarEvent),
+      trash: Array.isArray(parsed.trash) ? parsed.trash.filter(isDeletedCalendarEvent) : [],
+    };
   } catch {
-    return [];
+    return { events: [], trash: [] };
   }
 };
 
-export const saveCalendar = (events: CalendarEvent[]): void => {
+export const saveCalendar = (
+  events: CalendarEvent[],
+  trash: DeletedCalendarEvent[] = [],
+): void => {
   if (typeof window === "undefined") {
     return;
   }
@@ -94,7 +110,25 @@ export const saveCalendar = (events: CalendarEvent[]): void => {
   const payload: CalendarStorageV1 = {
     version: 1,
     events,
+    trash,
   };
 
   window.localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+};
+
+export const loadTheme = (): ThemePreference => {
+  if (typeof window === "undefined") {
+    return "dark";
+  }
+
+  const value = window.localStorage.getItem(THEME_KEY);
+  return value === "light" || value === "dark" ? value : "dark";
+};
+
+export const saveTheme = (theme: ThemePreference): void => {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  window.localStorage.setItem(THEME_KEY, theme);
 };
